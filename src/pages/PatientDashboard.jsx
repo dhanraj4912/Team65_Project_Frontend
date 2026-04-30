@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
-import axios from 'axios'
-import { voiceAPI } from '../services/api'
+import api, { voiceAPI } from '../services/api'
 
 
-// ── Parallel Agents Config ────────────────────────────────────────────────
 const AGENTS = [
   { id: 1, name: 'Insurance Agent', icon: '🛡️', task: 'Verifying your insurance coverage' },
   { id: 2, name: 'Provider Agent',  icon: '🏥', task: 'Finding available doctors'          },
@@ -27,24 +25,19 @@ export default function PatientDashboard() {
   const { user, logout } = useAuth()
   const [tab, setTab] = useState('appointments')
 
-  // Data
   const [appointments, setAppointments] = useState([])
   const [insurance, setInsurance]       = useState([])
   const [doctors, setDoctors]           = useState([])
   const [slots, setSlots]               = useState([])
   const [msg, setMsg]                   = useState({ text:'', type:'success' })
 
-  // Approval modal
   const [approvalModal, setApprovalModal] = useState(null)
   const [approving, setApproving]         = useState(false)
 
-  // Book form
   const [bookForm, setBookForm] = useState({ doctor_id:'', appointment_date:'', appointment_time:'', reason:'', insurance_used:'' })
 
-  // Insurance form
   const [insForm, setInsForm] = useState({ provider_name:'', policy_number:'', plan_name:'', sum_insured:'', coverage_start:'', coverage_end:'', covers_hospitalization:true, covers_outpatient:false })
 
-  // Voice AI state
   const [sessionId, setSessionId]     = useState(null)
   const [messages, setMessages]       = useState([])
   const [voiceText, setVoiceText]     = useState('')
@@ -61,13 +54,13 @@ export default function PatientDashboard() {
   const patientId = user?.id
 
   const loadAppts = () =>
-    axios.get(`/api/portal/my-appointments?patient_id=${patientId}`)
+    api.get(`/portal/my-appointments?patient_id=${patientId}`)
       .then(r => setAppointments(r.data)).catch(() => {})
 
   useEffect(() => {
     loadAppts()
-    axios.get(`/api/portal/my-insurance?patient_id=${patientId}`).then(r => setInsurance(r.data)).catch(() => {})
-    axios.get('/api/doctors/').then(r => setDoctors(r.data)).catch(() => {})
+    api.get(`/portal/my-insurance?patient_id=${patientId}`).then(r => setInsurance(r.data)).catch(() => {})
+    api.get('/doctors/').then(r => setDoctors(r.data)).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -80,7 +73,7 @@ export default function PatientDashboard() {
 
   useEffect(() => {
     if (bookForm.doctor_id && bookForm.appointment_date) {
-      axios.get(`/api/portal/available-slots?doctor_id=${bookForm.doctor_id}&appointment_date=${bookForm.appointment_date}`)
+      api.get(`/portal/available-slots?doctor_id=${bookForm.doctor_id}&appointment_date=${bookForm.appointment_date}`)
         .then(r => setSlots(r.data.slots || [])).catch(() => setSlots([]))
     }
   }, [bookForm.doctor_id, bookForm.appointment_date])
@@ -92,11 +85,10 @@ export default function PatientDashboard() {
 
   const pendingCount = appointments.filter(a => a.status === 'pending').length
 
-  // ── Book Appointment (manual form) ───────────────────────────────────────
   const bookAppointment = async e => {
     e.preventDefault()
     try {
-      await axios.post('/api/portal/book-appointment', {
+      await api.post('/portal/book-appointment', {
         ...bookForm, patient_id: patientId, doctor_id: Number(bookForm.doctor_id)
       })
       flash('📋 Appointment requested! Please approve it in the Appointments tab.')
@@ -106,23 +98,21 @@ export default function PatientDashboard() {
     } catch(err) { flash('❌ ' + (err.response?.data?.detail || 'Booking failed'), 'error') }
   }
 
-  // ── Add Insurance ─────────────────────────────────────────────────────────
   const addInsurance = async e => {
     e.preventDefault()
     try {
-      await axios.post('/api/portal/add-insurance', { ...insForm, patient_id: patientId, sum_insured: Number(insForm.sum_insured) })
+      await api.post('/portal/add-insurance', { ...insForm, patient_id: patientId, sum_insured: Number(insForm.sum_insured) })
       flash('✅ Insurance added!')
-      axios.get(`/api/portal/my-insurance?patient_id=${patientId}`).then(r => setInsurance(r.data))
+      api.get(`/portal/my-insurance?patient_id=${patientId}`).then(r => setInsurance(r.data))
       setInsForm({ provider_name:'', policy_number:'', plan_name:'', sum_insured:'', coverage_start:'', coverage_end:'', covers_hospitalization:true, covers_outpatient:false })
     } catch(err) { flash('❌ ' + (err.response?.data?.detail || 'Failed'), 'error') }
   }
 
-  // ── Approval ──────────────────────────────────────────────────────────────
   const confirmApproval = async () => {
     if (!approvalModal) return
     setApproving(true)
     try {
-      await axios.patch(`/api/appointments/patient-approve/${approvalModal.appt.id}?action=${approvalModal.action}`)
+      await api.patch(`/appointments/patient-approve/${approvalModal.appt.id}?action=${approvalModal.action}`)
       flash(approvalModal.action === 'approve' ? '✅ Appointment confirmed!' : '❌ Appointment cancelled.')
       loadAppts()
     } catch { flash('Failed to update', 'error') }
@@ -130,7 +120,6 @@ export default function PatientDashboard() {
     setApproving(false)
   }
 
-  // ── Voice AI ──────────────────────────────────────────────────────────────
   const addMsg = (role, content) =>
     setMessages(prev => [...prev, { role, content, time: new Date().toLocaleTimeString() }])
 
@@ -161,7 +150,6 @@ export default function PatientDashboard() {
         i++
       }
     }
-    // Refresh appointments after voice books
     setTimeout(() => loadAppts(), 2000)
   }
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from 'axios'
+import api from '../services/api'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const DEFAULT_SLOTS = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00']
@@ -40,7 +40,7 @@ export default function AddDoctorModal({ onClose, onSuccess }) {
     setLoading(true)
     setError('')
     try {
-      await axios.post('/api/admin/doctors/add', {
+      await api.post('/admin/doctors/add', {
         ...form,
         consultation_fee: parseFloat(form.consultation_fee)
       })

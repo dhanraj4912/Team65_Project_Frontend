@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
+import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
-  const API = import.meta.env.VITE_API_URL
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,7 +15,7 @@ export default function Login() {
     setLoading(true)
     setError('')
     try {
-      const res = await axios.post('https://voicecare.shop/api/auth/login', form)
+      const res = await api.post('/auth/login', form)
       login(res.data.user, res.data.token)
       if (res.data.user.role === 'admin') navigate('/')
       else navigate('/patient')

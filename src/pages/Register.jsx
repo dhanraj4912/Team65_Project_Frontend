@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
+import api from '../services/api'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -38,7 +38,7 @@ export default function Register() {
     setError('')
     try {
       const { confirm_password, ...payload } = form
-      await axios.post('/api/auth/register', payload)
+      await api.post('/auth/register', payload)
       setSuccess(true)
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed. Please try again.')

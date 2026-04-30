@@ -72,3 +72,5 @@ export const adminAPI = {
   getPendingInsurance: () => api.get('/admin/insurance/pending'),
   reviewInsurance: (recordId, action, reason = '') => api.patch(`/admin/insurance/${recordId}/review`, { action, reason })
 }
+
+export default api
