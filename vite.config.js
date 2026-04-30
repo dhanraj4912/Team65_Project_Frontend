@@ -6,9 +6,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://13.239.19.148:8000',   // ← use 127.0.0.1 not localhost
+        target: 'https://voicecare.shop',   
         changeOrigin: true,
-        rewrite: (path) => path             // keep /api prefix
+        rewrite: (path) => path            
       }
     }
   }
