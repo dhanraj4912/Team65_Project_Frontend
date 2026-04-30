@@ -1,11 +1,12 @@
 import axios from 'axios'
 
-const apiBaseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+const apiBaseURL = import.meta.env.VITE_API_BASE_URL || "https://voicecare.shop"
 const api = axios.create({
-  baseURL: apiBaseURL.endsWith('/api') ? apiBaseURL : `${apiBaseURL.replace(/\/$/, '')}/api`
+  baseURL: `${apiBaseURL}/api`,
+  timeout: 10000,
+  withCredentials: true,
 })
 
-// Add Authorization header interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
