@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { insuranceAPI, patientAPI } from '../services/api'
-import axios from 'axios'
+import { insuranceAPI, patientAPI, adminAPI } from '../services/api'
 
 export default function Insurance() {
   const [patients, setPatients] = useState([])
@@ -17,7 +16,7 @@ export default function Insurance() {
 
   const loadPending = async () => {
     try {
-      const r = await axios.get('/api/admin/insurance/pending')
+      const r = await adminAPI.getPendingInsurance()
       setPendingRecords(r.data)
     } catch {
       setPendingRecords([])
@@ -60,7 +59,7 @@ export default function Insurance() {
   const reviewInsurance = async (recordId, action, reason = '') => {
     setReviewBusyId(recordId)
     try {
-      await axios.patch(`/api/admin/insurance/${recordId}/review`, { action, reason })
+      await adminAPI.reviewInsurance(recordId, action, reason)
       await loadPending()
       if (selectedPid) await loadInsurance(selectedPid)
     } catch (err) {

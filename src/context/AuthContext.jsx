@@ -9,12 +9,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const savedToken = sessionStorage.getItem('vc_token')
-    const savedUser = sessionStorage.getItem('vc_user')
+    const savedToken = localStorage.getItem('token')
+    const savedUser = localStorage.getItem('user')
     if (savedToken && savedUser) {
       setToken(savedToken)
       setUser(JSON.parse(savedUser))
-      axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
     }
     setLoading(false)
   }, [])
@@ -22,17 +21,15 @@ export function AuthProvider({ children }) {
   const login = (userData, tokenData) => {
     setUser(userData)
     setToken(tokenData)
-    sessionStorage.setItem('vc_token', tokenData)
-    sessionStorage.setItem('vc_user', JSON.stringify(userData))
-    axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData}`
+    localStorage.setItem('token', tokenData)
+    localStorage.setItem('user', JSON.stringify(userData))
   }
 
   const logout = () => {
     setUser(null)
     setToken(null)
-    sessionStorage.removeItem('vc_token')
-    sessionStorage.removeItem('vc_user')
-    delete axios.defaults.headers.common['Authorization']
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
   }
 
   return (

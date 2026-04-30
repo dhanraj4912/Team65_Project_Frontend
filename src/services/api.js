@@ -5,6 +5,18 @@ const api = axios.create({
   baseURL: apiBaseURL.endsWith('/api') ? apiBaseURL : `${apiBaseURL.replace(/\/$/, '')}/api`
 })
 
+// Add Authorization header interceptor
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
 export const patientAPI = {
   list: () => api.get('/patients/'),
   search: (q) => api.get(`/patients/search?q=${q}`),
@@ -50,4 +62,12 @@ export const voiceAPI = {
     })
   },
   endSession: (sid) => api.delete(`/voice/session/${sid}`)
+}
+
+export const adminAPI = {
+  getStats: () => api.get('/admin/stats'),
+  getPatients: () => api.get('/admin/patients'),
+  createPatient: (data) => api.post('/admin/patients', data),
+  getPendingInsurance: () => api.get('/admin/insurance/pending'),
+  reviewInsurance: (recordId, action, reason = '') => api.patch(`/admin/insurance/${recordId}/review`, { action, reason })
 }
