@@ -1,8 +1,7 @@
 import axios from 'axios'
 
-const apiBaseURL = import.meta.env.VITE_API_BASE_URL || "https://voicecare.shop"
 const api = axios.create({
-  baseURL: `${apiBaseURL}/api`,
+  baseURL: `/api`,
   timeout: 10000,
   withCredentials: true,
 })
